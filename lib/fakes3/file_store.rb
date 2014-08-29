@@ -10,10 +10,11 @@ module FakeS3
   class FileStore
     SHUCK_METADATA_DIR = ".fakes3_metadataFFF"
 
-    def initialize(root)
+    def initialize(root, options = {})
       @root = root
       @buckets = []
       @bucket_hash = {}
+      @options = options
       Dir[File.join(root,"*")].each do |bucket|
         bucket_name = File.basename(bucket)
         bucket_obj = Bucket.new(bucket_name,Time.now,[])
@@ -86,8 +87,7 @@ module FakeS3
         real_obj.modified_date = metadata.fetch(:modified_date) { File.mtime(File.join(obj_root,"content")).iso8601() }
         return real_obj
       rescue
-        puts $!
-        $!.backtrace.each { |line| puts line }
+        print_backtrace($!)
         return nil
       end
     end
@@ -179,8 +179,7 @@ module FakeS3
         bucket.add(obj)
         return obj
       rescue
-        puts $!
-        $!.backtrace.each { |line| puts line }
+        print_backtrace($!)
         return nil
       end
     end
@@ -192,9 +191,15 @@ module FakeS3
         object = bucket.find(object_name)
         bucket.remove(object)
       rescue
+        print_backtrace($!)
+        return nil
+      end
+    end
+
+    def print_backtrace(err)
+      unless @options[:silent]
         puts $!
         $!.backtrace.each { |line| puts line }
-        return nil
       end
     end
   end

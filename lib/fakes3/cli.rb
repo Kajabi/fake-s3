@@ -18,7 +18,7 @@ module FakeS3
       if options[:root]
         root = File.expand_path(options[:root])
         # TODO Do some sanity checking here
-        store = FileStore.new(root)
+        store = FileStore.new(root, options)
       end
 
       if store.nil?
